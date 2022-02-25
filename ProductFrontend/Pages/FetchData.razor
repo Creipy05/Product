@@ -1,0 +1,95 @@
+﻿@page "/fetchdata"
+@using ProductFrontend.Models
+@inject HttpClient Http
+
+<PageTitle>Weather forecast</PageTitle>
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@*<input @bind="@Search" />
+*@
+<input placeholder="keresés..." type="search" onchange=@OnSearchChanged oninput="(this.dispatchEvent(new Event('change')))" />
+
+@if (products == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>UnitPrice</th>
+                <th>Rating</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                var filteredProducts = products
+                        .Where(x => x.Name.ToLower().Contains(Search.ToLower()))
+                        .OrderBy(x => x.Rating)
+                        .ToList();
+
+                foreach (var product in filteredProducts)
+                {
+                    <tr>
+                        <td>@product.Name</td>
+                        <td>@product.Price</td>
+                        <td>@product.Rating</td>
+                        <td>@product.Active</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Product>? products;
+
+    private string _Search = "";
+    private string? Search
+    {
+        get
+        {
+            return _Search;
+        }
+        set
+        {
+            _Search = value ?? "";
+        }
+    }    
+
+    protected async Task OnSearchChanged(ChangeEventArgs args)
+    {
+        Search = args?.Value?.ToString();
+
+        await GetData();
+    }
+
+    protected async Task GetData()
+    {
+        products = null;
+        var newProds = await Http.GetFromJsonAsync<List<Product>?>("https://localhost:7777/Product?search=" + Search);
+        products = newProds;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //products = new();   
+
+        await GetData();
+
+        //var product1 = new Product() { Id = Guid.NewGuid(), Name = "Alma", Price = 123.4, Rating = 3, Active = true, };
+        //products.Add(product1);
+        //var product2 = new Product() { Id = Guid.NewGuid(), Name = "Körte", Price = 324523.4, Rating = 2, Active = true, };
+        //products.Add(product2);
+        //var product3 = new Product() { Id = Guid.NewGuid(), Name = "Barack", Price = 3434, Rating = 1, Active = true, };
+        //products.Add(product3);
+    }
+
+}

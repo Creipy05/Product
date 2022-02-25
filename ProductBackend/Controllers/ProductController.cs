@@ -35,21 +35,34 @@ public class ProductController : ControllerBase
         await db.SaveChangesAsync();
 
     }
-    [HttpGet("GetFromDb")]
-    public List<Product> GetFromDb(string search)
+    [HttpGet]
+    public async Task<List<Product>> Get(string? search)
     {
         using var db = new ProductContext();
-        //var res = db.Products.ToList();
-        var res = db.Products
-            .Where(x => x.Name.ToLower().Contains(search.ToLower()))
-            .Where(x => x.Active)
-            .OrderByDescending(x => x.Rating)
-            .ToList();
 
+        var query = db.Products
+            .Where(x => x.Active);
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query
+                .Where(x => x.Name.ToLower().Contains(search.ToLower()));
+
+        }
+        query = query
+            .OrderByDescending(x => x.Rating);
+        var res = query.ToList();
+
+
+        //var res = db.Products
+        //    .Where(x => x.Name.ToLower().Contains(search.ToLower()))
+        //    .Where(x => x.Active)
+        //    .OrderByDescending(x => x.Rating)
+        //    .ToList();
+        await Task.Delay(500);
         return res;
     }
-    [HttpGet]
-    public List<Product> Get(string search)
+    [HttpGet("Get2")]
+    public List<Product> Get2(string search)
     {
         var res = new List<Product>();
         var product1 = new Product() { Id = Guid.NewGuid(), Name = "Alma", Price = 123.4, Rating = 3, Active = true, };
